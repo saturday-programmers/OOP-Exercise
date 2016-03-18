@@ -19,24 +19,24 @@ public class VendingMachine {
     public Drink buy(int i, int kindOfDrink) {
         // 100円と500円だけ受け付ける
         if ((i != 100) && (i != 500)) {
-            charge = i;
+            charge += i;
             return null;
         }
 
         if ((kindOfDrink == Drink.COKE) && (quantityOfCoke == 0)) {
-            charge = i;
+            charge += i;
             return null;
         } else if ((kindOfDrink == Drink.DIET_COKE) && (quantityOfDietCoke == 0)) {
-            charge = i;
+            charge += i;
             return null;
         } else if ((kindOfDrink == Drink.TEA) && (quantityOfTea == 0)) {
-            charge = i;
+            charge += i;
             return null;
         }
 
         // 釣り銭不足
         if (i == 500 && numberOf100Yen < 4) {
-            charge = i;
+            charge += i;
             return null;
         }
 
@@ -46,10 +46,8 @@ public class VendingMachine {
         } else if (i == 500) {
             // 400円のお釣り
             charge += (i - 100);
-            if (charge != 0) {
-                // 100円玉を釣り銭に使える
-                numberOf100Yen -= (i - 100) / 100;
-            }
+            // 100円玉を釣り銭に使える
+            numberOf100Yen -= (i - 100) / 100;
         }
 
         if (kindOfDrink == Drink.COKE) {
