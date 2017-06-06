@@ -1,74 +1,50 @@
 package vending;
 
 public class VendingMachine {
-
-    int quantityOfCoke = 5; // ã‚³ãƒ¼ãƒ©ã®åœ¨åº«æ•°
-    int quantityOfDietCoke = 5; // ãƒ€ã‚¤ã‚¨ãƒƒãƒˆã‚³ãƒ¼ãƒ©ã®åœ¨åº«æ•°
-    int quantityOfTea = 5; // ãŠèŒ¶ã®åœ¨åº«æ•°
-    int numberOf100Yen = 10; // 100å††ç‰ã®åœ¨åº«
-    int charge = 0; // ãŠé‡£ã‚Š
+    Quantity numberOf100Yen = new Quantity(10); // 100‰~‹Ê‚ÌİŒÉ
+    Change charge = new Change(); // ‚¨’Ş‚è
 
     /**
-     * ã‚¸ãƒ¥ãƒ¼ã‚¹ã‚’è³¼å…¥ã™ã‚‹.
+     * ƒWƒ…[ƒX‚ğw“ü‚·‚é.
      *
-     * @param i           æŠ•å…¥é‡‘é¡. 100å††ã¨500å††ã®ã¿å—ã‘ä»˜ã‘ã‚‹.
-     * @param kindOfDrink ã‚¸ãƒ¥ãƒ¼ã‚¹ã®ç¨®é¡.
-     *                    ã‚³ãƒ¼ãƒ©({@code Juice.COKE}),ãƒ€ã‚¤ã‚¨ãƒƒãƒˆã‚³ãƒ¼ãƒ©({@code Juice.DIET_COKE},ãŠèŒ¶({@code Juice.TEA})ãŒæŒ‡å®šã§ãã‚‹.
-     * @return æŒ‡å®šã—ãŸã‚¸ãƒ¥ãƒ¼ã‚¹. åœ¨åº«ä¸è¶³ã‚„é‡£ã‚ŠéŠ­ä¸è¶³ã§è²·ãˆãªã‹ã£ãŸå ´åˆã¯ {@code null} ãŒè¿”ã•ã‚Œã‚‹.
+     * @param i           “Š“ü‹àŠz. 100‰~‚Æ500‰~‚Ì‚İó‚¯•t‚¯‚é.
+     * @param kindOfDrink ƒWƒ…[ƒX‚Ìí—Ş.
+     *                    ƒR[ƒ‰({@code Juice.COKE}),ƒ_ƒCƒGƒbƒgƒR[ƒ‰({@code Juice.DIET_COKE},‚¨’ƒ({@code Juice.TEA})‚ªw’è‚Å‚«‚é.
+     * @return w’è‚µ‚½ƒWƒ…[ƒX. İŒÉ•s‘«‚â’Ş‚è‘K•s‘«‚Å”ƒ‚¦‚È‚©‚Á‚½ê‡‚Í {@code null} ‚ª•Ô‚³‚ê‚é.
      */
-    public Drink buy(int i, int kindOfDrink) {
-        // 100å††ã¨500å††ã ã‘å—ã‘ä»˜ã‘ã‚‹
-        if ((i != 100) && (i != 500)) {
-            charge += i;
-            return null;
-        }
+    public Drink buy(Money i, Drink.KindOfDrink kindOfDrink) {
+		boolean canBuy = false;
+        // 100‰~‚Æ500‰~‚¾‚¯ó‚¯•t‚¯‚é
+        canBuy = (i.is100() || i.is500());
 
-        if ((kindOfDrink == Drink.COKE) && (quantityOfCoke == 0)) {
-            charge += i;
-            return null;
-        } else if ((kindOfDrink == Drink.DIET_COKE) && (quantityOfDietCoke == 0)) {
-            charge += i;
-            return null;
-        } else if ((kindOfDrink == Drink.TEA) && (quantityOfTea == 0)) {
-            charge += i;
-            return null;
-        }
+        // ’Ş‚è‘K•s‘«
+        canBuy = canBuy && !(i.is500() && numberOf100Yen.isLessThan(new Quantity(4)));
 
-        // é‡£ã‚ŠéŠ­ä¸è¶³
-        if (i == 500 && numberOf100Yen < 4) {
-            charge += i;
-            return null;
-        }
+		canBuy = canBuy && Stock.pop(kindOfDrink);
+		if (!canBuy) {
+			this.charge.increase(i);
+			return null;
+		}
 
-        if (i == 100) {
-            // 100å††ç‰ã‚’é‡£ã‚ŠéŠ­ã«ä½¿ãˆã‚‹
-            numberOf100Yen++;
-        } else if (i == 500) {
-            // 400å††ã®ãŠé‡£ã‚Š
-            charge += (i - 100);
-            // 100å††ç‰ã‚’é‡£ã‚ŠéŠ­ã«ä½¿ãˆã‚‹
-            numberOf100Yen -= (i - 100) / 100;
+        if (i.is100()) {
+            // 100‰~‹Ê‚ğ’Ş‚è‘K‚Ég‚¦‚é
+            numberOf100Yen.increase();
         }
-
-        if (kindOfDrink == Drink.COKE) {
-            quantityOfCoke--;
-        } else if (kindOfDrink == Drink.DIET_COKE) {
-            quantityOfDietCoke--;
-        } else {
-            quantityOfTea--;
+		if (i.is500()) {
+            // 400‰~‚Ì‚¨’Ş‚è
+            Money currentCharge = this.charge.calc(i, new Money(100));
+            // 100‰~‹Ê‚ğ’Ş‚è‘K‚Ég‚¦‚é
+            numberOf100Yen.decrease(currentCharge.calcAmountOf100YenCoin());
         }
-
         return new Drink(kindOfDrink);
     }
 
-    /**
-     * ãŠé‡£ã‚Šã‚’å–ã‚Šå‡ºã™.
-     *
-     * @return ãŠé‡£ã‚Šã®é‡‘é¡
-     */
-    public int refund() {
-        int result = charge;
-        charge = 0;
-        return result;
-    }
+	/**
+	 * ‚¨’Ş‚è‚ğæ‚èo‚·.
+	 *
+	 * @return ‚¨’Ş‚è‚Ì‹àŠz
+	 */
+	public Money refund() {
+		return this.charge.refund();
+	}
 }
